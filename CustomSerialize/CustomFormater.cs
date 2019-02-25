@@ -17,18 +17,18 @@ namespace CustomSerialize
         {
             _header = new Dictionary<string, string>();
             _info = new List<string>();
-        }       
+        }
         public void Serialize(FileStream fs, object obj)
         {
-            ObjFormat(obj);
+            SerializeObj(obj);
             WriteToStream(fs);
         }
 
         public void Serialize(FileStream fs, object[] objects)
         {
-            foreach(object obj in objects)
+            foreach (object obj in objects)
             {
-                ObjFormat(obj);
+                SerializeObj(obj);
             }
             WriteToStream(fs);
         }
@@ -37,43 +37,42 @@ namespace CustomSerialize
             List<string> deserializeInfo = ReadFromStream(sr);
             List<object> res = new List<object>();
             Dictionary<string, string[]> typeDescript = new Dictionary<string, string[]>();
-            string objDescription = null;
+            string objDescription = string.Empty;
             string[] objProperties;
+            string typeName = string.Empty;
             int i = 0;
-            int tempInt = 0;
-            double tempDouble = 0;
-            bool tempBool = false;
-            while (objDescription != "")
+
+            while (!string.IsNullOrEmpty(deserializeInfo[i]))
             {
                 objDescription = deserializeInfo[i];
                 objProperties = objDescription.Split('\t');
-                typeDescript.Add(objProperties[0], objProperties);
+                typeName = objProperties[0];
+                typeDescript.Add(typeName, objProperties);
                 i++;
             }
-            //i++;
-            for (; i<deserializeInfo.Count; ++i)
+            for (; i < deserializeInfo.Count; ++i)
             {
                 objDescription = deserializeInfo[i];
                 objProperties = objDescription.Split('\t');
-                if (typeDescript.ContainsKey(objProperties[0]))
+                if (typeDescript.ContainsKey(typeName))
                 {
-                    string[] properties = typeDescript[objProperties[0]];
-                    object temp = Activator.CreateInstance(null, "CustomSerialize." + objProperties[0]).Unwrap();
-                    Type type = temp.GetType();
+                    string[] properties = typeDescript[typeName];
+                    string assName = Assembly.GetExecutingAssembly().GetName().Name;
+                    object temp = Activator.CreateInstance(assName, assName + "." + typeName).Unwrap();
                     for (int j = 1; j < properties.Length; j++)
                     {
-                        PropertyInfo prop = type.GetProperty(properties[j], BindingFlags.Public | BindingFlags.Instance);
+                        PropertyInfo prop = temp.GetType().GetProperty(properties[j], BindingFlags.Public | BindingFlags.Instance);
                         if (null != prop && prop.CanWrite)
                         {
-                            if(Int32.TryParse(objProperties[j], out tempInt))
+                            if (int.TryParse(objProperties[j], out int tempInt))
                             {
                                 prop.SetValue(temp, tempInt, null);
                             }
-                            else if(double.TryParse(objProperties[j], out tempDouble))
+                            else if (double.TryParse(objProperties[j], out double tempDouble))
                             {
                                 prop.SetValue(temp, tempDouble, null);
                             }
-                            else if (bool.TryParse(objProperties[j], out tempBool))
+                            else if (bool.TryParse(objProperties[j], out bool tempBool))
                             {
                                 prop.SetValue(temp, tempBool, null);
                             }
@@ -88,12 +87,17 @@ namespace CustomSerialize
             }
             return res;
         }
-        private void ObjFormat(object obj)
+        private void SerializeObj(object obj)
         {
             Type type = obj.GetType();
             var properties = type.GetProperties();
-            var propertiesWithAttr = properties.Select(pi => new
-            { Property = pi, Attribute = pi.GetCustomAttributes(typeof(TxtSerializableAttribute), true).FirstOrDefault() as TxtSerializableAttribute })
+            var propertiesWithAttr = properties.Select(
+                    pi => new
+                    {
+                        Property = pi,
+                        Attribute = pi.GetCustomAttributes(typeof(TxtSerializableAttribute), true).FirstOrDefault() as TxtSerializableAttribute
+                    }
+                )
             .Where(x => x.Attribute != null)
             .ToList();
             StringBuilder sb = new StringBuilder();
@@ -138,7 +142,7 @@ namespace CustomSerialize
         {
             List<string> deserializeInfo = new List<string>();
             string line;
-            while((line = sr.ReadLine()) != null)
+            while ((line = sr.ReadLine()) != null)
             {
                 deserializeInfo.Add(line);
             }
