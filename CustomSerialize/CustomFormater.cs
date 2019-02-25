@@ -50,10 +50,12 @@ namespace CustomSerialize
                 typeDescript.Add(typeName, objProperties);
                 i++;
             }
+            i++;
             for (; i < deserializeInfo.Count; ++i)
             {
                 objDescription = deserializeInfo[i];
                 objProperties = objDescription.Split('\t');
+                typeName = objProperties[0];
                 if (typeDescript.ContainsKey(typeName))
                 {
                     string[] properties = typeDescript[typeName];
@@ -91,7 +93,7 @@ namespace CustomSerialize
         {
             Type type = obj.GetType();
             var properties = type.GetProperties();
-            var propertiesWithAttr = properties.Select(
+            var propertiesWithAttr = properties.Select( //select all properties with TxtSerializableAttribute
                     pi => new
                     {
                         Property = pi,
