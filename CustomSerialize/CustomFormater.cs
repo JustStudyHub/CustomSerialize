@@ -13,12 +13,10 @@ namespace CustomSerialize
     {
         Dictionary<string, string> _header;
         List<string> _info;
-        List<string> _deserializeInfo;
         public CustomFormater()
         {
             _header = new Dictionary<string, string>();
             _info = new List<string>();
-            _deserializeInfo = new List<string>();
         }       
         public void Serialize(FileStream fs, object obj)
         {
@@ -36,7 +34,7 @@ namespace CustomSerialize
         }
         public List<object> Deserialize(StreamReader sr)
         {
-            ReadFromStream(sr);
+            List<string> deserializeInfo = ReadFromStream(sr);
             List<object> res = new List<object>();
             Dictionary<string, string[]> typeDescript = new Dictionary<string, string[]>();
             string objDescription = null;
@@ -47,15 +45,15 @@ namespace CustomSerialize
             bool tempBool = false;
             while (objDescription != "")
             {
-                objDescription = _deserializeInfo[i];
+                objDescription = deserializeInfo[i];
                 objProperties = objDescription.Split('\t');
                 typeDescript.Add(objProperties[0], objProperties);
                 i++;
             }
             //i++;
-            for (; i<_deserializeInfo.Count; ++i)
+            for (; i<deserializeInfo.Count; ++i)
             {
-                objDescription = _deserializeInfo[i];
+                objDescription = deserializeInfo[i];
                 objProperties = objDescription.Split('\t');
                 if (typeDescript.ContainsKey(objProperties[0]))
                 {
@@ -136,13 +134,15 @@ namespace CustomSerialize
             }
         }
 
-        private void ReadFromStream(StreamReader sr)
+        private List<string> ReadFromStream(StreamReader sr)
         {
+            List<string> deserializeInfo = new List<string>();
             string line;
             while((line = sr.ReadLine()) != null)
             {
-                _deserializeInfo.Add(line);
+                deserializeInfo.Add(line);
             }
+            return deserializeInfo;
         }
     }
 }

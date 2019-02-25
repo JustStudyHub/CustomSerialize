@@ -15,12 +15,6 @@ namespace CustomSerialize
     {
         static void Main(string[] args)
         {
-            //Stream stream = File.Open("data.xml", FileMode.Create);
-            //XmlSerializer serializer =  new XmlSerializer(typeof(Int16));
-            //object obj = new Int32();
-            //Type type = obj.GetType();
-            //Console.WriteLine(type);
-
             Base testObj0 = new Base
             {
                 Name = "testName0",
@@ -35,7 +29,6 @@ namespace CustomSerialize
                 Weight = 300
             };
 
-            CustomFormater cf= new CustomFormater();
             Child testObj2 = new Child
             {
                 Name = "testName2",
@@ -58,9 +51,9 @@ namespace CustomSerialize
                 IsOpen = true
             };
 
+            CustomFormater cf = new CustomFormater();
             object[] objBuff = { testObj0, testObj1, testObj2, testObj3, testObj4 };
-            //cf.Serialize(testObj);
-            //cf.Serialize(testObj2);
+
             FileStream fs = new FileStream("note.txt", FileMode.OpenOrCreate);
             cf.Serialize(fs, objBuff);
             fs.Close();
